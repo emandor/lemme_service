@@ -1,0 +1,52 @@
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Build artifacts
+bin/
+build/
+dist/
+*.log
+*.tmp
+
+# Go vendor (if not used)
+vendor/
+
+# Editor / IDE
+.vscode/
+.idea/
+*.iml
+*.swp
+*.swo
+*.DS_Store
+
+# OS generated
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Environment / Config
+.env
+*.local
+.env.*
+!.env.example
+
+# Coverage & Testing
+*.cover
+*.coverprofile
+coverage.out
+
+# Database / Cache
+*.rdb
+*.sql
+*.sqlite
+*.db
+
+# File storage
+uploads/
+storage/
+tmp/
