@@ -36,13 +36,13 @@ func main() {
 
 	app := fiber.New()
 
-	// app.Use(middleware.RateLimiter())
+	app.Use(middleware.RateLimiter())
 	app.Use(middleware.RequestID())
 	app.Use(middleware.Recover())
 	app.Use(middleware.CORS(cfg))
 	app.Use(middleware.RequestLog())
 	// app.Use(middleware.WSUpgradeMiddleware())
-	// app.Use(middleware.SecureHeaders())
+	app.Use(middleware.SecureHeadersStrict())
 
 	authReg := auth.NewRegistry(cfg, sqlxDB, rdb)
 

@@ -8,7 +8,7 @@ import (
 const JSON_INSTRUCTION = `Return ONLY a single-line JSON object with keys:
 "answer": string (may be "A".."Z", number like "2", boolean "True"/"False", or free text),
 "reason": string (optional, brief).
-No Markdown, no code fences, no extra text.`
+No Markdown, no code fences, no extra text. please use Indonesian if the question is in Indonesian.`
 
 // BuildPromptWithChoices: user OCR text + optional choices to build prompt.
 // if choices is empty or nil, it will be ignored.

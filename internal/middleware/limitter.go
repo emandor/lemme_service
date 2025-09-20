@@ -7,7 +7,8 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 )
 
-// RateLimiter applies global rate limiting based on client IP
+import "strings"
+
 func RateLimiter() fiber.Handler {
 	return limiter.New(limiter.Config{
 		Max:        100,
@@ -19,6 +20,11 @@ func RateLimiter() fiber.Handler {
 			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
 				"error": "rate limit exceeded",
 			})
+		},
+		Next: func(c *fiber.Ctx) bool {
+			path := c.Path()
+			// Skip limiter for static files and health check
+			return path == "/healthz" || strings.HasPrefix(path, "/storage/")
 		},
 	})
 }
