@@ -12,7 +12,6 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1
-	github.com/otiai10/gosseract/v2 v2.4.1
 	github.com/redis/go-redis/v9 v9.12.1
 	github.com/rs/zerolog v1.34.0
 	golang.org/x/oauth2 v0.30.0
