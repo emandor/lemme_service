@@ -149,6 +149,7 @@ func (s *Service) ProcessAsync(quizID int64, _imagePathIgnored string) {
 		_ = g.Wait()
 
 		s.markCompleted(quizID)
+		ws.BroadcastQuizCompleted(quizID)
 		go func() {
 			for i := 0; i < 30; i++ {
 				if ws.HasSubscribers(quizID) {
