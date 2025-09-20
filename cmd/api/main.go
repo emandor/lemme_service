@@ -35,41 +35,35 @@ func main() {
 	}
 
 	app := fiber.New()
+
+	// app.Use(middleware.RateLimiter())
 	app.Use(middleware.RequestID())
 	app.Use(middleware.Recover())
 	app.Use(middleware.CORS(cfg))
 	app.Use(middleware.RequestLog())
+	// app.Use(middleware.WSUpgradeMiddleware())
+	// app.Use(middleware.SecureHeaders())
 
 	authReg := auth.NewRegistry(cfg, sqlxDB, rdb)
 
-	app.Static("/storage", "./storage")
 	app.Get("/healthz", func(c *fiber.Ctx) error {
 		return c.SendString("ok")
 	})
+	app.Static("/storage", "./storage")
 	app.Get("/api/v1/auth/google/login", authReg.GoogleLogin)
 	app.Get("/api/v1/auth/google/callback", authReg.GoogleCallback)
 
-	protected := app.Group("/api/v1", middleware.AuthSession(authReg))
 	qh := quiz.NewHandler(cfg, sqlxDB, rdb)
+	protected := app.Group("/api/v1", middleware.AuthSession(authReg))
 
 	protected.Post("/auth/logout", authReg.Logout)
 	protected.Get("/me", authReg.Me)
 
-	protected.Post("/quizzes", qh.CreateQuiz)
+	protected.Post("/quizzes", middleware.FileUploadValidator(cfg), qh.CreateQuiz)
 	protected.Get("/quizzes", qh.ListMyQuizzes)
 	protected.Get("/quizzes/:id", qh.GetQuiz)
 	protected.Get("/quizzes/:id/answers", qh.ListAnswers)
 
-	app.Use("/ws", func(c *fiber.Ctx) error {
-		// IsWebSocketUpgrade returns true if the client
-		// requested upgrade to the WebSocket protocol.
-		if websocket.IsWebSocketUpgrade(c) {
-			c.Locals("allowed", true)
-			return c.Next()
-		}
-
-		return fiber.ErrUpgradeRequired
-	})
 	app.Get("/ws", websocket.New(ws.HandleWS))
 
 	log.Fatal(app.Listen(":" + cfg.AppPort))

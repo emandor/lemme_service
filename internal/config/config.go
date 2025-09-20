@@ -39,6 +39,10 @@ type Config struct {
 	OpenAIRPS          int
 	OpenAIBurst        int
 	ProviderMaxRetries int
+
+	MaxBodyLimit       int
+	AllowedMaxFileSize int
+	AllowedFileExt     []string
 }
 
 func Load() *Config {
@@ -76,8 +80,26 @@ func Load() *Config {
 		OpenAIRPS:           atoi(get("OPENAI_RPS", "2")),
 		OpenAIBurst:         atoi(get("OPENAI_BURST", "2")),
 		ProviderMaxRetries:  atoi(get("PROVIDER_MAX_RETRIES", "3")),
+		AllowedMaxFileSize:  GetEnvInt("ALLOWED_MAX_FILE_SIZE", 2),
+		AllowedFileExt:      GetEnvList("ALLOWED_FILE_EXT", []string{".jpg", ".jpeg", ".png"}),
 	}
 	return c
+}
+
+func GetEnvInt(k string, d int) int {
+	if v := os.Getenv(k); v != "" {
+		if i, err := strconv.Atoi(v); err == nil {
+			return i
+		}
+	}
+	return d
+}
+
+func GetEnvList(k string, d []string) []string {
+	if v := os.Getenv(k); v != "" {
+		return strings.Split(v, ",")
+	}
+	return d
 }
 
 func get(k, d string) string {

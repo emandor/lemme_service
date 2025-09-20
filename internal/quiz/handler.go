@@ -13,8 +13,10 @@ import (
 	"github.com/emandor/lemme_service/internal/config"
 	"github.com/emandor/lemme_service/internal/img"
 	"github.com/emandor/lemme_service/internal/middleware"
+	"github.com/emandor/lemme_service/internal/model"
 	"github.com/emandor/lemme_service/internal/ocr"
 	"github.com/emandor/lemme_service/internal/providers"
+	"github.com/emandor/lemme_service/internal/quota"
 	"github.com/emandor/lemme_service/internal/telemetry"
 	"github.com/emandor/lemme_service/internal/ws"
 )
@@ -69,6 +71,20 @@ func (h *Handler) CreateQuiz(c *fiber.Ctx) error {
 	userid := mustUserID(c)
 	log := telemetry.L().With().Str("req_id", rid).Int64("user_id", userid).Logger()
 
+	var u model.User
+	if err := h.db.Get(&u, `SELECT id, quiz_quota, quiz_used FROM users WHERE id=?`, userID); err != nil {
+		return c.Status(500).SendString("db error")
+	}
+
+	uq := quota.UserQuota{QuizQuota: u.QuizQuota, QuizUsed: u.QuizUsed}
+	if !uq.CanCreateQuiz() {
+		return c.Status(403).SendString("quota exceeded")
+	}
+
+	if err := h.db.Get(&u, `SELECT id, quiz_quota, quiz_used FROM users WHERE id=?`, userID); err != nil {
+		return c.Status(500).SendString("db error")
+	}
+
 	fh, err := c.FormFile("image")
 	if err != nil {
 		return c.Status(400).SendString("image required")
@@ -103,6 +119,7 @@ func (h *Handler) CreateQuiz(c *fiber.Ctx) error {
 
 	// Async process
 	h.svc.ProcessAsync(qid, save.Path)
+	_, _ = h.db.Exec(`UPDATE users SET quiz_used=quiz_used+1 WHERE id=?`, userID)
 	return c.JSON(fiber.Map{"id": qid, "status": "processing", "image_path": save.Path})
 }
 

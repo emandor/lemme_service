@@ -65,8 +65,10 @@ func (r *Registry) Me(c *fiber.Ctx) error {
 		Name      string    `db:"name" json:"name"`
 		Picture   string    `db:"picture" json:"picture"`
 		CreatedAt time.Time `db:"created_at" json:"created_at"`
+		QuizQuota int       `db:"quiz_quota" json:"quiz_quota"`
+		QuizUsed  int       `db:"quiz_used" json:"quiz_used"`
 	}
-	err := r.db.Get(&user, `SELECT id, email, name, picture, created_at FROM users WHERE id=? LIMIT 1`, uid)
+	err := r.db.Get(&user, `SELECT id, email, name, picture, created_at, quiz_used, quiz_quota FROM users WHERE id=? LIMIT 1`, uid)
 	if err != nil {
 		return c.Status(500).SendString("db error")
 	}

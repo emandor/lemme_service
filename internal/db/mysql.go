@@ -17,7 +17,7 @@ var fs embed.FS
 func MustConnect(dsn string) *sqlx.DB {
 	db, err := sqlx.Connect("mysql", dsn)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("db connect error:", err)
 	}
 	db.SetMaxOpenConns(20)
 	db.SetMaxIdleConns(10)
@@ -25,13 +25,28 @@ func MustConnect(dsn string) *sqlx.DB {
 }
 
 func MustMigrate(db *sqlx.DB) {
-	d, _ := mysql.WithInstance(db.DB, &mysql.Config{})
-	s, _ := iofs.New(fs, "migrations")
-	m, err := migrate.NewWithInstance("iofs", s, "mysql", d)
+	driver, err := mysql.WithInstance(db.DB, &mysql.Config{})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("mysql driver init error:", err)
 	}
-	if err = m.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Fatal(err)
+
+	source, err := iofs.New(fs, "migrations")
+	if err != nil {
+		log.Fatal("migration source init error:", err)
 	}
+
+	m, err := migrate.NewWithInstance("iofs", source, "mysql", driver)
+	if err != nil {
+		log.Fatal("migration init error:", err)
+	}
+
+	if err := m.Up(); err != nil {
+		if err == migrate.ErrNoChange {
+			log.Println("no new migrations")
+			return
+		}
+		log.Fatal("migration failed:", err)
+	}
+
+	log.Println("migrations applied successfully")
 }
