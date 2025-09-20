@@ -150,14 +150,14 @@ func (h *Handler) ListMyQuizzes(c *fiber.Ctx) error {
 		return c.Status(500).SendString("db fail")
 	}
 
-	for i := range quizzes {
-		var answers []AnswerRow
-		_ = h.db.Select(&answers, `
-            SELECT source,answer_text,reason_text,created_at
-            FROM answers WHERE quiz_id=?
-            ORDER BY id ASC`, quizzes[i].ID)
-		quizzes[i].Answers = answers
-	}
+	// for i := range quizzes {
+	// 	var answers []AnswerRow
+	// 	_ = h.db.Select(&answers, `
+	//            SELECT source,answer_text,reason_text,created_at
+	//            FROM answers WHERE quiz_id=?
+	//            ORDER BY id ASC`, quizzes[i].ID)
+	// 	quizzes[i].Answers = answers
+	// }
 
 	return c.JSON(quizzes)
 }

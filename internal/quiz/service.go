@@ -150,7 +150,7 @@ func (s *Service) ProcessAsync(quizID int64, _imagePathIgnored string) {
 
 		s.markCompleted(quizID)
 		go func() {
-			for i := 0; i < 5; i++ {
+			for i := 0; i < 30; i++ {
 				if ws.HasSubscribers(quizID) {
 					ws.BroadcastQuizCompleted(quizID)
 					return
@@ -168,7 +168,7 @@ func (s *Service) saveOCR(quizID int64, text string) {
 	_, _ = s.db.Exec(`UPDATE quizzes SET ocr_text=?, status='processing', updated_at=NOW() WHERE id=?`, text, quizID)
 
 	go func() {
-		for i := 0; i < 5; i++ { // try 5 times, 1s interval
+		for i := 0; i < 30; i++ { // try 30 times, 1s interval
 			if ws.HasSubscribers(quizID) {
 				ws.BroadcastQuizOCRDone(quizID, text)
 				return
