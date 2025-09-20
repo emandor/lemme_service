@@ -46,6 +46,8 @@ coverage.out
 *.sqlite
 *.db
 
+!internal/db/migrations/
+
 # File storage
 uploads/
 storage/
