@@ -150,17 +150,7 @@ func (s *Service) ProcessAsync(quizID int64, _imagePathIgnored string) {
 
 		s.markCompleted(quizID)
 		ws.BroadcastQuizCompleted(quizID)
-		go func() {
-			for i := 0; i < 30; i++ {
-				if ws.HasSubscribers(quizID) {
-					ws.BroadcastQuizCompleted(quizID)
-					return
-				}
-				time.Sleep(1 * time.Second)
-			}
-			// fallback anyway
-			ws.BroadcastQuizCompleted(quizID)
-		}()
+
 		log.Info().Str("stage", "completed").Msg("process_quiz")
 	}()
 }
@@ -168,17 +158,10 @@ func (s *Service) ProcessAsync(quizID int64, _imagePathIgnored string) {
 func (s *Service) saveOCR(quizID int64, text string) {
 	_, _ = s.db.Exec(`UPDATE quizzes SET ocr_text=?, status='processing', updated_at=NOW() WHERE id=?`, text, quizID)
 
-	go func() {
-		for i := 0; i < 30; i++ { // try 30 times, 1s interval
-			if ws.HasSubscribers(quizID) {
-				ws.BroadcastQuizOCRDone(quizID, text)
-				return
-			}
-			time.Sleep(1 * time.Second)
-		}
-		// fallback broadcast anyway
-		ws.BroadcastQuizOCRDone(quizID, text)
-	}()
+	// delay broadcast slightly to ensure websocket client is ready
+	time.Sleep(500 * time.Millisecond)
+
+	ws.BroadcastQuizOCRDone(quizID, text)
 }
 
 func (s *Service) saveAnswer(quizID int64, source providers.SourceName, ans providers.Answer, err error) {
